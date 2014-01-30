@@ -2,12 +2,11 @@ import Control.Arrow
 import Data.Set
 
 -- Each vertex must have an associated "charge" for repulsion.
--- Each edge must have a constant for springiness.
-
 data Node = Node { charge :: Double
                  , position :: Position
                  } deriving (Eq, Show)
 
+-- Each edge must have a constant for springiness.
 data Graph = Graph { graphVerts :: [Node]
                    , edges :: Set (Double, Node)
                    } deriving (Eq, Show)

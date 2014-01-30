@@ -22,7 +22,7 @@
 -}
 
 import Data.Functor
-import Data.Set
+import Data.Map
 
 -- Each vertex must have an associated "charge" for repulsion.
 data Node = Node { charge :: Double
@@ -31,7 +31,7 @@ data Node = Node { charge :: Double
 
 -- Each edge must have a constant for springiness.
 data Graph = Graph { graphVerts :: [Node]
-                   , edges :: Set (Double, Node)
+                   , edges :: Map Node [(Double, Node)]
                    } deriving (Eq, Show)
 
 type Force = Vec2 Double
@@ -62,4 +62,3 @@ magnitude v = sqrt $ v |.| v
 -- Returns a tuple with a magnitude of 1 (barring floating point errors).
 normalize :: (Floating a) => Vec2 a -> Vec2 a
 normalize v@(Vec2 x y) = let mag = magnitude v in Vec2 (x / mag) (y / mag)
-

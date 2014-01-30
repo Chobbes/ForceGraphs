@@ -5,11 +5,11 @@ import Control.Arrow
 
 data Node = Node { charge :: Double
                  , position :: Position
-                 } deriving (Equals, Show)
+                 } deriving (Eq, Show)
 
 data Spring = Spring { stiffness :: Double
                      , nodes :: (Node, Node)
-                     } deriving (Equals, Show)
+                     } deriving (Eq, Show)
 
 type Force = (Double, Double)
 type Position = (Double, Double)

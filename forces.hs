@@ -13,3 +13,10 @@ data Spring = Spring { stiffness :: Double
 
 type Force = (Double, Double)
 type Position = (Double, Double)
+
+magnitude :: (Double, Double) -> Double
+magnitude = sqrt . tupleSum . ((**2) *** (**2))
+  where tupleSum t = fst t + snd t
+
+
+

@@ -29,9 +29,14 @@ data Node = Node { charge :: Double
                  , position :: Position
                  } deriving (Eq, Show)
 
+-- Each edge is a spring
+data Spring = Spring { stiffness :: Double
+                     , springNode :: Node
+                     } deriving (Eq, Show)
+
 -- Each edge must have a constant for springiness.
 data Graph = Graph { graphVerts :: [Node]
-                   , edges :: Map Node [(Double, Node)]
+                   , edges :: Map Node [Spring]
                    } deriving (Eq, Show)
 
 type Force = Vec2 Double
@@ -62,3 +67,11 @@ magnitude v = sqrt $ v |.| v
 -- Returns a tuple with a magnitude of 1 (barring floating point errors).
 normalize :: (Floating a) => Vec2 a -> Vec2 a
 normalize v@(Vec2 x y) = let mag = magnitude v in Vec2 (x / mag) (y / mag)
+
+-- Force of the second node on the first node.
+repulsiveForce :: Node -> Node -> Force
+repulsiveForce u v = (*force) <$> dir
+    where dir = normalize (position v - position u)
+          dist = magnitude (position v - position u)
+          force = charge v * charge u / dist**2
+

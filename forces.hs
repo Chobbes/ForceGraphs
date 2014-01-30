@@ -73,5 +73,9 @@ repulsiveForce :: Node -> Node -> Force
 repulsiveForce u v = (*force) <$> dir
     where dir = normalize (position v - position u)
           dist = magnitude (position v - position u)
-          force = charge v * charge u / dist**2
+          force = negate $ charge v * charge u / dist**2
 
+-- Force of a spring on a node.
+attractiveForce :: Node -> Spring -> Force
+attractiveForce Node {position=u} spring@(Spring {stiffness=k}) = (*k) <$> (v - u)
+  where v = position $ springNode spring

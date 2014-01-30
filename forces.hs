@@ -22,12 +22,14 @@
 -}
 
 import Data.Functor
-import Data.Map
+import Data.Map hiding (filter, map)
+import Prelude hiding (lookup)
+import Data.Maybe
 
 -- Each vertex must have an associated "charge" for repulsion.
 data Node = Node { charge :: Double
                  , position :: Position
-                 } deriving (Eq, Show)
+                 } deriving (Eq, Ord, Show)
 
 -- Each edge is a spring
 data Spring = Spring { stiffness :: Double
@@ -56,6 +58,9 @@ instance (Num a) => Num (Vec2 a) where
 instance Functor Vec2 where
   fmap f (Vec2 a b) = Vec2 (f a) (f b)
 
+instance (Ord a) => Ord (Vec2 a) where
+  (<=) (Vec2 a b) (Vec2 c d) = a < c || (a == c && b <= d)
+
 -- Dot product of a 2D vector
 (|.|) :: (Num a) => Vec2 a -> Vec2 a -> a
 (|.|) u v = let Vec2 a b = u * v in a + b
@@ -79,3 +84,9 @@ repulsiveForce u v = (*force) <$> dir
 attractiveForce :: Node -> Spring -> Force
 attractiveForce Node {position=u} spring@(Spring {stiffness=k}) = (*k) <$> (v - u)
   where v = position $ springNode spring
+
+nodeForce :: Node -> Graph -> Force
+nodeForce node Graph {edges=es, graphVerts=vs} = attract + repulse
+  where attract = sum $ map (attractiveForce node) (fromMaybe [] $ lookup node es)
+        repulse = sum $ map (repulsiveForce node) (filter (/=node) vs)
+

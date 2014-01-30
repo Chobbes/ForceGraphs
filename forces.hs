@@ -22,7 +22,7 @@
 -}
 
 import Data.Functor
-import Data.Map hiding (filter, map)
+import Data.Map hiding (filter, map, foldl)
 import Prelude hiding (lookup)
 import Data.Maybe
 
@@ -85,8 +85,27 @@ attractiveForce :: Node -> Spring -> Force
 attractiveForce Node {position=u} spring@(Spring {stiffness=k}) = (*k) <$> (v - u)
   where v = position $ springNode spring
 
-nodeForce :: Node -> Graph -> Force
-nodeForce node Graph {edges=es, graphVerts=vs} = attract + repulse
+-- Force for a node in a graph.
+nodeForce :: Graph -> Node -> Force
+nodeForce Graph {edges=es, graphVerts=vs} node = attract + repulse
   where attract = sum $ map (attractiveForce node) (fromMaybe [] $ lookup node es)
         repulse = sum $ map (repulsiveForce node) (filter (/=node) vs)
 
+-- Forces for all nodes in a graph.
+graphForces :: Graph -> Map Node Force
+graphForces g = foldl union empty $ map (\n -> singleton n (nodeForce g n)) (graphVerts g)
+
+-- Update graph. Returns the total distance moved by all verts as well as the new graph.
+-- Each step assumes a mass of 1, and a timestep of 1.
+graphUpdate :: Graph -> (Double, Graph)
+graphUpdate g@(Graph {edges=es, graphVerts=vs}) = (dist, Graph newVerts es)
+  where newVerts = map (\n@(Node c v) -> Node c (v + (fromMaybe 0 $ lookup n forces))) vs
+        forces = graphForces g
+        dist = sum $ map magnitude $ zipWith (\n1 n2 -> position n1 - position n2) newVerts vs
+
+-- Update the graph until there is less than a certain amount of change.
+graphFullUpdate :: Graph -> Double -> Graph
+graphFullUpdate g error
+  | dist < error = newG
+  | otherwise = graphFullUpdate newG error
+  where (dist, newG) = graphUpdate g

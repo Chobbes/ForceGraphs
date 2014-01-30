@@ -21,7 +21,7 @@
    SOFTWARE.
 -}
 
-import Control.Arrow
+import Data.Functor
 import Data.Set
 
 -- Each vertex must have an associated "charge" for repulsion.
@@ -34,15 +34,32 @@ data Graph = Graph { graphVerts :: [Node]
                    , edges :: Set (Double, Node)
                    } deriving (Eq, Show)
 
-type Force = (Double, Double)
-type Position = (Double, Double)
+type Force = Vec2 Double
+type Position = Vec2 Double
+
+
+data Vec2 a = Vec2 a a deriving (Eq, Show)
+
+instance (Num a) => Num (Vec2 a) where
+  (+) (Vec2 a b) (Vec2 c d) = Vec2 (a + c) (b + d)
+  (-) (Vec2 a b) (Vec2 c d) = Vec2 (a - c) (b - d)
+  (*) (Vec2 a b) (Vec2 c d) = Vec2 (a * c) (b * d)
+  abs = fmap abs
+  signum = fmap signum
+  fromInteger x = fromIntegral <$> (Vec2 x x)
+
+instance Functor Vec2 where
+  fmap f (Vec2 a b) = Vec2 (f a) (f b)
+
+-- Dot product of a 2D vector
+(|.|) :: (Num a) => Vec2 a -> Vec2 a -> a
+(|.|) u v = let Vec2 a b = u * v in a + b
 
 -- Get the magnitude of a tuple (vector magnitude).
-magnitude :: (Double, Double) -> Double
-magnitude = sqrt . tupleSum . ((**2) *** (**2))
-  where tupleSum t = fst t + snd t
+magnitude :: (Floating a) => Vec2 a -> a
+magnitude v = sqrt $ v |.| v
 
 -- Returns a tuple with a magnitude of 1 (barring floating point errors).
-normalize :: (Double, Double) -> (Double, Double)
-normalize t@(x, y) = let mag = magnitude t in (x / mag, y / mag)
+normalize :: (Floating a) => Vec2 a -> Vec2 a
+normalize v@(Vec2 x y) = let mag = magnitude v in Vec2 (x / mag) (y / mag)
 
